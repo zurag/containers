@@ -246,8 +246,8 @@ void AssignTest() {
 	fvec3.assign(myints,myints+3);
 	for (size_t i = 0; i < svec3.size(); ++i) {
 		assertm(fvec3[i] == svec3[i], "Assign fill check value");
-		// std::cout << svec3[i] << '\n';
-		// std::cout << fvec3[i] << '\n';
+		std::cout << svec3[i] << '\n';
+		std::cout << fvec3[i] << '\n';
 	}
 }
 
@@ -356,7 +356,6 @@ void InsertTest() {
 
 	svec.insert(svec.begin() + 5, 10, 55);
 	fvec.insert(fvec.begin() + 5, 10, 55);
-	std::cout << *it << ' ' << *it2 << std::endl;
 	for (size_t i = 0; i < svec.size(); ++i) {
 		std::cout << svec[i] << ' ';
 	}
@@ -365,6 +364,23 @@ void InsertTest() {
 		std::cout << fvec[i] << ' ';
 	}
 	std::cout << std::endl;
+	std::cout << std::endl;
+
+	std::vector<int> svec2;
+	ft::vector<int> fvec2;
+
+	svec2.insert(svec2.begin(), svec.begin(), svec.end());
+	fvec2.insert(fvec2.begin(), fvec.begin(), fvec.end());
+	for (size_t i = 0; i < svec2.size(); ++i) {
+		std::cout << svec2[i] << ' ';
+	}
+	std::cout << std::endl;
+	for (size_t i = 0; i < fvec2.size(); ++i) {
+		std::cout << fvec2[i] << ' ';
+	}
+	std::cout << std::endl;
+
+
 
 }
 
@@ -386,13 +402,13 @@ int main()
 	// std::cout << "FrontBackTest OK\n";
 	// Push_backTest();
 	// std::cout << "Push_backTest OK\n";
-	// AssignTest();
-	// std::cout << "AssignTest OK\n";
+	AssignTest();
+	std::cout << "AssignTest OK\n";
 	// IteratorTest();
 	// std::cout << "IteratorTest OK\n";
 	// EraseTest();
 	InsertTest();
-	// std::cout << "InsertTest OK\n";
+	std::cout << "InsertTest OK\n";
 	
  	return (0);
 }
