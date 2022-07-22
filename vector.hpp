@@ -595,8 +595,8 @@ namespace ft
 
 	private:
 		T				*_arr;
-		int				_capacity;
-		int				_size;
+		size_type		_capacity;
+		size_type		_size;
 		allocator_type	_alloc;
 	};
 
@@ -617,7 +617,7 @@ namespace ft
 	}
 
 	template <class T, class Alloc>
-	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator< (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()); // Заменить на ft
 	}
 
@@ -627,7 +627,7 @@ namespace ft
 	}
 
 	template <class T, class Alloc>
-	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator> (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return (rhs < lhs);
 	}
 

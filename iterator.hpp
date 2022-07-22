@@ -28,7 +28,7 @@ struct iterator_traits {
 };
 
 
-template <class const T*>
+template <class const T *>
 struct iterator_traits {
    typedef typename		random_access_iterator_tag iterator_category;
    typedef typename		T value_type;
