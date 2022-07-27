@@ -35,6 +35,7 @@ struct Node {
 		p = node.p;
 		color = node.color;
 	}
+	~Node() {}
 };
 
 
@@ -58,11 +59,11 @@ class map
 			// typedef Alloc										allocator_type;
 			typedef Node<Key, T> TreeNode;
 
-			Iterator():_node(NULL) { }
+			Iterator():_node(nullptr), _root(nullptr) { }
 			
-			Iterator(const Iterator &x):_node(x._node) { }
+			Iterator(const Iterator &x):_node(x._node), _root(x._root) { }
 
-			Iterator(TreeNode *x):_node(x) {}
+			Iterator(TreeNode *x, TreeNode *root):_node(x), _root(root) {}
 			
 			value_type &operator*(){return _node->value_;}
 		
@@ -70,6 +71,7 @@ class map
 			
 			Iterator& operator= (const Iterator &x) {
 				_node = x._node;
+				_root = x._root;
 				return *this;
 			}
 			
@@ -97,77 +99,50 @@ class map
 					while (tmp && tmp->value_.first < _node->value_.first) // Заменить на CMP
 						tmp = tmp->p;
 					_node = tmp;
-				}				
+				}
 				return *this;
 			}
 
 			Iterator operator++(int) {
 				Iterator copy(*this);
-				if (!_node) {
-					return copy;
-				}
-				TreeNode *tmp = nullptr;
-				if (_node->right) {
-					tmp = _node->right;
-					if (tmp->left && tmp->left->value_.first > _node->value_.first) { // Заменить на CMP
-						while (tmp->left != nullptr)
-							tmp = tmp->left;
-							_node = tmp;
-						}
-					else
-						_node = _node->right;
-				}
-				else {
-					tmp = _node->p;
-					while (tmp && tmp->value_.first < _node->value_.first) // Заменить на CMP
-						tmp = tmp->p;
-					_node = tmp;
-				}
+				this->operator++();
 				return copy;
 			}
 			
 			Iterator& operator--() {
+				TreeNode *tmp = nullptr;
 				if (!_node) {
+					tmp = _root;
+					while(tmp->right)
+						tmp = tmp->right;
+					_node = tmp;
 					return *this;
 				}
-				TreeNode *tmp = nullptr;
 				if(_node->left) {
 					tmp = _node->left;
-					while (tmp != nullptr)
+					while (tmp->right != nullptr)
 						tmp = tmp->right;
 					_node = tmp;
 				}
 				else {
 					tmp = _node->p;
-					while (tmp && tmp->value_.first > _node->value_.first) // Заменить на CMP
+					while (tmp && tmp->value_.first > _node->value_.first) {
 						tmp = tmp->p;
+					} // Заменить на CMP
 					_node = tmp;
+					
 				}
 				return *this;
 			}
 
 			Iterator operator--(int) {
 				Iterator copy(*this);
-				if (!_node) {
-					return copy;
-				}
-				TreeNode *tmp = nullptr;
-				if(_node->left ) {
-					tmp = _node->left;
-					while (tmp != nullptr)
-						tmp = tmp->right;
-					_node = tmp;
-				}
-				else {
-					tmp = _node->p;
-					while (tmp && tmp->value_.first > _node->value_.first) // Заменить на CMP
-						tmp = tmp->p;
-					_node = tmp;
-				}
+				this->operator--();
 				return copy;
 			}
 			private:
 				TreeNode *_node;
+				TreeNode *_root;
 		};
 
 
@@ -195,7 +170,7 @@ public:
 
 
 	map (const key_compare& comp = key_compare(),
-            	const allocator_type& alloc = allocator_type()):_alloc(alloc),
+				const allocator_type& alloc = allocator_type()):_alloc(alloc),
 				_comp(comp), _root(nullptr), _size(0) {
 	}
 
@@ -213,7 +188,7 @@ public:
 	// }
 
 	~map() {
-
+		clear();
 	}
 
 	// map& operator= (const map& x);
@@ -226,13 +201,13 @@ public:
 		while (tmp->left != nullptr) {
 			tmp = tmp->left;
 		}
-		return iterator(tmp);
+		return iterator(tmp, _root);
 	}
 	
 	// const_iterator begin() const;
 
 	iterator end() {
-		return iterator(nullptr);
+		return iterator(nullptr, _root);
 	}
 	
 	// const_iterator end() const;
@@ -245,17 +220,17 @@ public:
 	
 	// const_reverse_iterator rend() const;
 
-	// bool empty() const {
-	// 	return _size == 0;
-	// }
+	bool empty() const {
+		return _size == 0;
+	}
 
-	// size_type size() const {
-	// 	return _size;
-	// }
+	size_type size() const {
+		return _size;
+	}
 
-	// size_type max_size() const {
-	// 	return _alloc.max_size();
-	// }
+	size_type max_size() const {
+		return _alloc.max_size();
+	}
 
 	// mapped_type& operator[] (const key_type& k) {
 	// 	iterator it = find(k);
@@ -267,13 +242,12 @@ public:
 
 
 	pair<iterator,bool> insert (const value_type& val) {
-		// bool		ret = false;
 		TreeNode	*new_node = _alloc.allocate(1);
 		_alloc.construct(new_node, val, true);
 
 		TreeNode *y = NULL;
 		TreeNode *x = _root;
-		iterator	it(new_node);
+		iterator	it(new_node, _root);
 
 		while (x) {
 			y = x;
@@ -283,7 +257,7 @@ public:
 			else if (new_node->value_.first == x->value_.first) {
 				_alloc.destroy(new_node);
 				_alloc.deallocate(new_node, 1);
-				return (pair<iterator, bool>(iterator(x), false));
+				return (pair<iterator, bool>(iterator(x, _root), false));
 			}
 			else
 				x = x->right;
@@ -299,17 +273,53 @@ public:
 		new_node->right = NULL;
 		new_node->color = true;
 		insert_fixup(new_node); // функция восстанавливающая свойства дерева
-		// std::cout << "head === " << _root->value_.first << '\n';
 		++_size;
 		return (pair<iterator, bool>(it, true));
 	}
 
 	// iterator insert (iterator position, const value_type& val);
 
-	// template <class InputIterator>
-	// void insert (InputIterator first, InputIterator last);
+	template <class InputIterator>
+	void insert (InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral<InputIterator>::value* = 0) {
+		for ( ;first != last; ++first) {
+			this->insert(*first);
+		}
+	}
 
-	// void erase (iterator position);
+	void erase (iterator position) {
+		TreeNode *node = position->_node;
+		TreeNode *x;
+		TreeNode *y(node);
+		bool color = node->color;
+
+		if (!node->left) {
+			x = node->right;
+			transplant(node, node->right);
+		}
+		else if (!node->right) {
+			x = node->left;
+			transplant(node, node->left);
+		}
+		else {
+			while (y->left)
+				y = y->left;
+			color = y->color;
+			x = y->right;
+			if (y->p == node)
+				x->p = y;
+			else {
+				transplant(y, y->right);
+				y->right = node->right;
+				y->right->p = y;
+			}
+			transplate(node, y);
+			y->left = node->left;
+			y->left->p = y;
+			y->color = node->color;
+		}
+		if (!color)
+			delete_fixup(x);
+	}
 
 	// size_type erase (const key_type& k);
 
@@ -321,19 +331,27 @@ public:
 	// 	*this = tmp;
 	// }
 
-	// void clear();
+	void clear() {
+		clearNode(_root);
+		_size = 0;
+		_root = nullptr;
+	}
 
-	// key_compare key_comp() const {
-	// 	return _comp;
+	key_compare key_comp() const {
+		return _comp;
+	}
+
+	// value_compare value_comp() const {
+
 	// }
 
-	// value_compare value_comp() const;
-
-	// iterator find (const key_type& k);
+	iterator find (const key_type& k);
 	
-	// const_iterator find (const key_type& k) const;
+	const_iterator find (const key_type& k) const;
 
-	// size_type count (const key_type& k) const;
+	size_type count (const key_type& k) const {
+		return find(k) != end();
+	}
 
 	// iterator lower_bound (const key_type& k);
 	
@@ -347,17 +365,89 @@ public:
 	
 	// pair<iterator,iterator> equal_range (const key_type& k);
 
-	// allocator_type get_allocator() const {
-	// 		return _alloc;
-	// }
+	allocator_type get_allocator() const {
+			return _alloc;
+	}
 
 private:
+
+	void delete_fixup(TreeNode *x) {
+		TreeNode *tmp;
+		while (x != _root && !x->color) {
+			if (x->p && x == x->p->left) {
+				tmp = x->p->right;
+				if (tmp && tmp->color) {
+					tmp->color = false;
+					x->p->color = true;
+					left_rotate(x->p);
+					tmp = x->p->right;
+				}
+				if (!tmp->left->color && !tmp->right->color) {
+					tmp->color = true;
+					x = x->p;
+				}
+				else { 
+					if (!tmp->right->color) {
+						tmp->left->color = false;
+						tmp->color = true;
+						right_rotate(tmp);
+						tmp = x->p->right;
+					}
+					tmp->color = x->p->color;
+					x->p->color = false;
+					tmp->right->color = false;
+					left_rotate(x->p);
+					x = _root;
+				}
+			}
+			else {
+				tmp = x->p->left;
+				if (tmp && tmp->color) {
+					tmp->color = false;
+					x->p->color = true;
+					right_rotate(x->p);
+					tmp = x->p->left;
+				}
+				if (!tmp->right->color && !tmp->left->color) {
+					tmp->color = true;
+					x = x->p;
+				}
+				else { 
+					if (!tmp->left->color) {
+						tmp->right->color = false;
+						tmp->color = true;
+						left_rotate(tmp);
+						tmp = x->p->right;
+					}
+					tmp->color = x->p->color;
+					x->p->color = false;
+					tmp->left->color = false;
+					right_rotate(x->p);
+					x = _root;
+				}
+			}
+		}
+		x->color = false;
+	}
+
+	void transplant(TreeNode *node1, TreeNode *node2) {
+		if (!node1->p) {
+			_root == node2;
+		}
+		else if (node1 == node1->p->left) {
+			node1->p->left = node2;
+		}
+		else
+			node1->p->right = node2;
+		if (node2)
+			node2->p = node1->p;
+	}
+
 
 	void insert_fixup(TreeNode *node) {
 		TreeNode *y = nullptr;
 		if (node == _root) {
 			node->color = false;
-			// _root->color = false;
 			return ;
 		}
 		if (node->p == _root)
@@ -439,6 +529,17 @@ private:
 		x->right = y;
 	}
 
+	void clearNode(TreeNode *node) {
+		if (node) {
+			if (node->left)
+				clearNode(node->left);
+			if (node->right)
+				clearNode(node->right);
+			_alloc.destroy(node);
+			_alloc.deallocate(node, 1);
+		}
+
+	}
 
 	TreeNode		*_root;
 	size_type		_size;

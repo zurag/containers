@@ -11,34 +11,45 @@ void ConstructorTest() {
 	for (int i = 0; i < 10; ++i) {
 		dict.insert(std::make_pair(i, i));
 	}
-
-	for (std::map<int, int>::iterator it = dict.begin(); it != dict.end(); ++it) {
-		std::cout << it->first << ' ' << it->second << ' ';
+	dict.insert(std::make_pair(-20, -20));
+	dict.insert(std::make_pair(-10, -10));
+	dict.insert(std::make_pair(-15, -15));
+	dict.insert(std::make_pair(-1, -1));
+	dict.insert(std::make_pair(-4, -4));
+	std::map<int, int>::iterator sit;
+	for (sit = dict.begin(); sit != dict.end(); ++sit) {
+		std::cout << sit->first << ' ' << sit->second << ' ';
 	}
 	std::cout << '\n';
-	
+	--sit;
+	for (; sit != dict.begin(); --sit) {
+		std::cout << sit->first << ' ' << sit->second << ' ';
+	}
+	std::cout << '\n';
+	std::cout << '\n';
+
+
 	ft::map<int, int> dict2;
 	i = 0;
-	ft::pair<ft::map<int, int>::iterator, bool> p;
-	// for (int i = 0; i < 10; ++i) {
-	// 	dict2.insert(ft::make_pair(i, i));
-	// 	// p = dict2.insert(ft::make_pair(i, i));
-	// 	// std::cout << p.first->first << ' ' << p.second << '\n';
-	// }
-
-	dict2.insert(ft::make_pair(15, 1));
-	dict2.insert(ft::make_pair(5, 1));
-	dict2.insert(ft::make_pair(1, 1)); // head == 5 
-
-	for (ft::map<int, int>::iterator it = dict2.end(); it != dict2.begin();) {
-		--it;
-		std::cout << it->first << ' ' << it->second << ' ';
-
-		break;
+	for (int i = 0; i < 10; ++i) {
+		dict2.insert(ft::make_pair(i, i));
 	}
-	// std::cout << '\n';
+	dict2.insert(ft::make_pair(-20, -20));
+	dict2.insert(ft::make_pair(-10, -10));
+	dict2.insert(ft::make_pair(-15, -15));
+	dict2.insert(ft::make_pair(-1, -1));
+	dict2.insert(ft::make_pair(-4, -4));
+	ft::map<int, int>::iterator fit;
+	for (fit = dict2.begin(); fit != dict2.end(); ++fit) {
+		std::cout << fit->first << ' ' << fit->second << ' ';
+	}
+	std::cout << '\n';
+	--fit;
 
-
+	for (; fit != dict2.begin(); --fit) {
+		std::cout << fit->first << ' ' << fit->second << ' ';	
+	}
+	std::cout << '\n';
 }
 
 void TreeNodeTest() {
