@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <iostream>
 #include <stdexcept>
-#include <algorithm> 
+#include <algorithm>
 #include "type_traits.hpp"
 #include <type_traits>
 
@@ -586,7 +586,7 @@ namespace ft
 		}
 		
 		void swap (vector& x) {
-			ft::swap(this, x);
+			swap(this, x);
 		}
 
 		allocator_type get_allocator() const {

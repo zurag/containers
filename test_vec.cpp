@@ -103,7 +103,7 @@ void ResizeTest() {
 	std::vector<int> svec(10, 1);
 	fvec.resize(22, 2);
 	svec.resize(22, 2);
-	for (int i = 0; i < svec.size(); ++i) {
+	for (size_t i = 0; i < svec.size(); ++i) {
 		assertm(svec[i] == fvec[i], "Resize check value");
 	}
 	assertm(fvec.size() == svec.size(), "Resize check size");
@@ -114,7 +114,7 @@ void ResizeTest() {
 	std::vector<int> svec2(10, 1);
 	fvec2.resize(2, 2);
 	svec2.resize(2, 2);
-	for (int i = 0; i < svec2.size(); ++i) {
+	for (size_t i = 0; i < svec2.size(); ++i) {
 		assertm(svec2[i] == fvec2[i], "Resize check value");
 	}
 	assertm(fvec2.size() == svec2.size(), "Resize check size");
