@@ -28,8 +28,7 @@ namespace ft
 			typedef typename delConst<U>::type		value_type;
 			typedef typename delConst<U&>::type		reference;
 			typedef typename delConst<U*>::type		pointer;
-
-			typedef pointer iterator_type;
+			typedef pointer							iterator_type;
 
 			Iterator():_ptr(nullptr) { }
 			
@@ -41,7 +40,7 @@ namespace ft
 			Iterator(const pointer x):_ptr(x) {}
 
 			~Iterator() {}
-			
+
 			reference operator*() const {return *_ptr;}
 		
 			pointer operator->() const {return _ptr;}

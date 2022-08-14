@@ -1,152 +1,14 @@
 #ifndef __MAP_HPP__
 # define __MAP_HPP__
 
-#include <utility>
-#include <functional>
-#include <iterator>
-#include <iostream>
-// #include "iterator.hpp"
-#include "utility.hpp"
-
+#include "Tree.hpp"
 
 namespace ft {
 
-template <class Key, class T>
-struct Node {
-
-	Node *left;
-	Node *right;
-	Node *p;
-	pair<const Key,T> value_;
-	bool color; // true -> Red, false -> Black
-
-	Node(pair<const Key,T> value, bool color = false):value_(value)
-	{
-		left = nullptr;
-		right = nullptr;
-		p = nullptr;
-		this->color = color;
-	}
-
-	Node(Node &node):value_(node.value_)
-	{
-		left = node.left;
-		right = node.right;
-		p = node.p;
-		color = node.color;
-	}
-	~Node() {}
-};
-
-
 template < class Key, class T, class Compare = std::less<Key>,
-			class Alloc = std::allocator<Node<Key, T> > >
+			class Alloc = std::allocator<pair<const Key, T> > >
 class map
 {
-	class Iterator :public std::iterator<std::bidirectional_iterator_tag, Key, T>
-		{			
-
-		public:
-			typedef std::bidirectional_iterator_tag iterator_category;
-			typedef ptrdiff_t difference_type;
-			// typedef T value_type;
-			// typedef T* pointer;
-			// typedef T& reference;
-			typedef  Key										key_type;
-			typedef  T											mapped_type;
-			typedef pair<const key_type, mapped_type>			value_type;
-			// typedef Compare										key_compare;
-			// typedef Alloc										allocator_type;
-			typedef Node<Key, T> TreeNode;
-
-			Iterator():_node(nullptr), _root(nullptr) { }
-			
-			Iterator(const Iterator &x):_node(x._node), _root(x._root) { }
-
-			Iterator(TreeNode *x, TreeNode *root):_node(x), _root(root) {}
-			
-			value_type &operator*(){return _node->value_;}
-		
-			value_type *operator->(){return &(_node->value_);}
-			
-			Iterator& operator= (const Iterator &x) {
-				_node = x._node;
-				_root = x._root;
-				return *this;
-			}
-			
-			friend bool operator==(const Iterator &x, const Iterator &y) {return x._node == y._node;}
-
-			friend bool operator!=(const Iterator &x, const Iterator &y) {return x._node != y._node;}
-			
-			Iterator& operator++() {
-				if (!_node) {
-					return *this;
-				}
-				TreeNode *tmp = nullptr;
-				if (_node->right) {
-					tmp = _node->right;
-					if (tmp->left && tmp->left->value_.first > _node->value_.first) { // Заменить на CMP
-						while (tmp->left != nullptr)
-							tmp = tmp->left;
-							_node = tmp;
-						}
-					else
-						_node = _node->right;
-				}
-				else {
-					tmp = _node->p;
-					while (tmp && tmp->value_.first < _node->value_.first) // Заменить на CMP
-						tmp = tmp->p;
-					_node = tmp;
-				}
-				return *this;
-			}
-
-			Iterator operator++(int) {
-				Iterator copy(*this);
-				this->operator++();
-				return copy;
-			}
-			
-			Iterator& operator--() {
-				TreeNode *tmp = nullptr;
-				if (!_node) {
-					tmp = _root;
-					while(tmp->right)
-						tmp = tmp->right;
-					_node = tmp;
-					return *this;
-				}
-				if(_node->left) {
-					tmp = _node->left;
-					while (tmp->right != nullptr)
-						tmp = tmp->right;
-					_node = tmp;
-				}
-				else {
-					tmp = _node->p;
-					while (tmp && tmp->value_.first > _node->value_.first) {
-						tmp = tmp->p;
-					} // Заменить на CMP
-					_node = tmp;
-					
-				}
-				return *this;
-			}
-
-			Iterator operator--(int) {
-				Iterator copy(*this);
-				this->operator--();
-				return copy;
-			}
-			private:
-				TreeNode *_node;
-				TreeNode *_root;
-		};
-
-
-
 public:
 
 	typedef  Key										key_type;
@@ -161,393 +23,257 @@ public:
 	typedef typename allocator_type::size_type			size_type;
 	typedef typename allocator_type::difference_type	difference_type;
 
-	typedef Node<Key, T>	TreeNode;
-	typedef TreeNode		*TreeNodeptr;
-	typedef Iterator		iterator;
-	typedef const Iterator const_iterator;
-	typedef std::reverse_iterator<iterator> reverse_iterator; // Заменить на ft
-	typedef std::reverse_iterator<const_iterator> const_reverse_iterator; // Заменить на ft
 
+	class value_compare: public std::binary_function<value_type,value_type,bool>
+	{
+	friend class map;
+	public:
+		typedef  Key										key_type;
+		typedef  T											mapped_type;
+		typedef pair<const key_type, mapped_type>			value_type;
+		typedef Compare										key_compare;
+	protected:
+			Compare comp;
+			value_compare (Compare c) : comp(c) {}
+	public:
+		bool operator() (const value_type& x, const value_type& y) const {
+			return comp(x.first, y.first);
+		}
+		bool operator() (const key_type& x, const value_type& y) const {
+			return comp(x, y.first);
+		}
+		bool operator() (const value_type& x, const key_type& y) const {
+			return comp(x.first, y);
+		}
+	};
+
+	typedef Tree<value_type, value_compare, allocator_type>	Tree_type;
+
+public:
+	typedef typename Tree_type::iterator			iterator;
+	typedef typename Tree_type::const_iterator		const_iterator;
+	typedef typename Tree_type::reverse_iterator	reverse_iterator;
+	typedef typename Tree_type::const_iterator		const_reverse_iterator;
 
 	map (const key_compare& comp = key_compare(),
-				const allocator_type& alloc = allocator_type()):_alloc(alloc),
-				_comp(comp), _root(nullptr), _size(0) {
+				const allocator_type& alloc = allocator_type()):_tree(new Tree_type(comp, alloc)),
+				_comp(comp), _alloc(alloc)
+	{
+	
 	}
 
-	// template <class InputIterator>
- 	// map (InputIterator first, InputIterator last,
-    //    const key_compare& comp = key_compare(),
-    //    const allocator_type& alloc = allocator_type()) {
+	template <class InputIterator>
+ 	map (InputIterator first, InputIterator last,
+				const key_compare& comp = key_compare(),
+				const allocator_type& alloc = allocator_type()): _tree (new Tree_type(first, last, comp, alloc)),
+				_comp(comp), _alloc(alloc){
+	}
 
-	// }
+	map (const map& x): _tree (new Tree_type(*x._tree)), _comp(x._comp), _alloc(x._alloc) {
+	}
 
-	
-
-	// map (const map& x) {
-
-	// }
+	map& operator= (const map& x) {
+		*_tree = *x._tree;
+		_comp = x.key_comp();
+		_alloc = x.get_allocator();
+		return *this;
+	}
 
 	~map() {
-		clear();
+		delete _tree;
 	}
-
-	// map& operator= (const map& x);
 
 	iterator begin() {
-		TreeNode *tmp = _root;
-
-		if (_size == 0)
-			return end();
-		while (tmp->left != nullptr) {
-			tmp = tmp->left;
-		}
-		return iterator(tmp, _root);
+		return _tree->begin();
 	}
 	
-	// const_iterator begin() const;
+	const_iterator begin() const {
+		return _tree->begin();
+	}
 
 	iterator end() {
-		return iterator(nullptr, _root);
+		return _tree->end();
 	}
 	
-	// const_iterator end() const;
+	const_iterator end() const {
+		return _tree->end();
+	}
 
-	// reverse_iterator rbegin();
-	
-	// const_reverse_iterator rbegin() const;
+	reverse_iterator rbegin() {
+		return _tree->rbegin();
+	}
 
-	// reverse_iterator rend();
+	const_reverse_iterator rbegin() const {
+		return _tree->rbegin();
+	}
+
+	reverse_iterator rend() {
+		return _tree->rend();
+	}
 	
-	// const_reverse_iterator rend() const;
+	const_reverse_iterator rend() const {
+		return _tree->rend();
+	}
 
 	bool empty() const {
-		return _size == 0;
+		return _tree->empty();
 	}
 
 	size_type size() const {
-		return _size;
+		return _tree->size();
 	}
 
 	size_type max_size() const {
-		return _alloc.max_size();
+		return _tree->max_size();
 	}
 
-	// mapped_type& operator[] (const key_type& k) {
-	// 	iterator it = find(k);
-	// 	if (it != end())
-	// 		return it->second;
-	// 	else
-	// 		return (*((this->insert(make_pair(k,mapped_type()))).first)).second;
-	// }
-
+	mapped_type& operator[] (const key_type& k) {
+		iterator it = _tree->find(k);
+		if (it != end())
+			return it->second;
+		else
+			return (*((this->insert(ft::make_pair(k, mapped_type()))).first)).second;
+	}
 
 	pair<iterator,bool> insert (const value_type& val) {
-		TreeNode	*new_node = _alloc.allocate(1);
-		_alloc.construct(new_node, val, true);
-
-		TreeNode *y = NULL;
-		TreeNode *x = _root;
-		iterator	it(new_node, _root);
-
-		while (x) {
-			y = x;
-			if (new_node->value_.first < x->value_.first) {
-				x = x->left;
-			}
-			else if (new_node->value_.first == x->value_.first) {
-				_alloc.destroy(new_node);
-				_alloc.deallocate(new_node, 1);
-				return (pair<iterator, bool>(iterator(x, _root), false));
-			}
-			else
-				x = x->right;
-		}
-		new_node->p = y;
-		if (!y)
-			_root = new_node;
-		else if (new_node->value_.first < y->value_.first)
-			y->left = new_node;
-		else
-			y->right = new_node;
-		new_node->left = NULL;
-		new_node->right = NULL;
-		new_node->color = true;
-		insert_fixup(new_node); // функция восстанавливающая свойства дерева
-		++_size;
-		return (pair<iterator, bool>(it, true));
+		return _tree->insert(val);
 	}
 
-	// iterator insert (iterator position, const value_type& val);
+	iterator insert (iterator position, const value_type& val) {
+		return _tree->insert(position, val);
+	}
 
 	template <class InputIterator>
-	void insert (InputIterator first, InputIterator last, typename ft::enable_if< !ft::is_integral<InputIterator>::value* = 0) {
-		for ( ;first != last; ++first) {
-			this->insert(*first);
-		}
+	void insert (InputIterator first, InputIterator last,
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0) {
+		_tree->insert(first, last);
 	}
 
 	void erase (iterator position) {
-		TreeNode *node = position->_node;
-		TreeNode *x;
-		TreeNode *y(node);
-		bool color = node->color;
-
-		if (!node->left) {
-			x = node->right;
-			transplant(node, node->right);
-		}
-		else if (!node->right) {
-			x = node->left;
-			transplant(node, node->left);
-		}
-		else {
-			while (y->left)
-				y = y->left;
-			color = y->color;
-			x = y->right;
-			if (y->p == node)
-				x->p = y;
-			else {
-				transplant(y, y->right);
-				y->right = node->right;
-				y->right->p = y;
-			}
-			transplate(node, y);
-			y->left = node->left;
-			y->left->p = y;
-			y->color = node->color;
-		}
-		if (!color)
-			delete_fixup(x);
+		_tree->erase(position);
 	}
 
-	// size_type erase (const key_type& k);
+	size_type erase (const key_type& k) {
+		return _tree->erase(k);
+	}
 
-	// void erase (iterator first, iterator last);
+	void erase (iterator first, iterator last) {
+		for (; first != last;) {
+			_tree->erase(first++);
+		}
+	}
 
-	// void swap (map& x) {
-	// 	map<Key, T> tmp(x);
-	// 	x = *this;
-	// 	*this = tmp;
-	// }
+	mapped_type& at (const key_type& k) {
+		iterator it = _tree->find(k);
+		if (it == end())
+			throw std::out_of_range("map");
+		return it->second;
+	}
+
+	const mapped_type& at (const key_type& k) const {
+		iterator it = _tree->find(k);
+		if (it == end())
+			throw std::out_of_range("map");
+		return it->second;
+	}
+
+
+	void swap (map& x) {
+		std::swap(this->_tree, x._tree);
+	}
 
 	void clear() {
-		clearNode(_root);
-		_size = 0;
-		_root = nullptr;
+		_tree->clear();
 	}
 
 	key_compare key_comp() const {
 		return _comp;
 	}
 
-	// value_compare value_comp() const {
-
-	// }
-
-	iterator find (const key_type& k);
-	
-	const_iterator find (const key_type& k) const;
-
-	size_type count (const key_type& k) const {
-		return find(k) != end();
+	value_compare value_comp() const {
+		return value_compare(_comp);
 	}
 
-	// iterator lower_bound (const key_type& k);
+	iterator find (const key_type& k) {
+		return _tree->find(k);
+	}
 	
-	// const_iterator lower_bound (const key_type& k) const;
+	const_iterator find (const key_type& k) const {
+		return _tree->find(k);
+	}
 
-	// iterator upper_bound (const key_type& k);
-	
-	// const_iterator upper_bound (const key_type& k) const;
+	size_type count (const key_type& k) const {
+		return _tree->count(k);
+	}
 
-	// pair<const_iterator,const_iterator> equal_range (const key_type& k) const;
+	iterator lower_bound (const key_type& k) {
+		return _tree->lower_bound(k);
+	}
 	
-	// pair<iterator,iterator> equal_range (const key_type& k);
+	const_iterator lower_bound (const key_type& k) const {
+		return _tree->lower_bound(k);
+	}
+
+	iterator upper_bound (const key_type& k) {
+		return _tree->upper_bound(k);
+	}
+	
+	const_iterator upper_bound (const key_type& k) const {
+		return _tree->upper_bound(k);
+	}
+
+	pair<const_iterator,const_iterator> equal_range (const key_type& k) const {
+		return pair<const_iterator, const_iterator>(lower_bound(k), upper_bound(k));
+	}
+	
+	pair<iterator,iterator> equal_range (const key_type& k) {
+		return pair<iterator, iterator>(lower_bound(k), upper_bound(k));
+	}
 
 	allocator_type get_allocator() const {
-			return _alloc;
+		return _alloc;
+	}
+
+	friend bool operator==( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		if (lhs.size() != rhs.size())
+			return false;
+		return ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+	}
+	
+	friend bool operator!=( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		return !(lhs == rhs);
+	}
+
+	friend bool operator<( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
+	
+	friend bool operator<=( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		return !(rhs < lhs);
+	}
+
+	friend bool operator>( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		return (rhs < lhs);
+	}
+
+	friend bool operator>=( const map<Key,T,Compare,Alloc>& lhs,
+					const map<Key,T,Compare,Alloc>& rhs ) {
+		return !(lhs < rhs);
 	}
 
 private:
-
-	void delete_fixup(TreeNode *x) {
-		TreeNode *tmp;
-		while (x != _root && !x->color) {
-			if (x->p && x == x->p->left) {
-				tmp = x->p->right;
-				if (tmp && tmp->color) {
-					tmp->color = false;
-					x->p->color = true;
-					left_rotate(x->p);
-					tmp = x->p->right;
-				}
-				if (!tmp->left->color && !tmp->right->color) {
-					tmp->color = true;
-					x = x->p;
-				}
-				else { 
-					if (!tmp->right->color) {
-						tmp->left->color = false;
-						tmp->color = true;
-						right_rotate(tmp);
-						tmp = x->p->right;
-					}
-					tmp->color = x->p->color;
-					x->p->color = false;
-					tmp->right->color = false;
-					left_rotate(x->p);
-					x = _root;
-				}
-			}
-			else {
-				tmp = x->p->left;
-				if (tmp && tmp->color) {
-					tmp->color = false;
-					x->p->color = true;
-					right_rotate(x->p);
-					tmp = x->p->left;
-				}
-				if (!tmp->right->color && !tmp->left->color) {
-					tmp->color = true;
-					x = x->p;
-				}
-				else { 
-					if (!tmp->left->color) {
-						tmp->right->color = false;
-						tmp->color = true;
-						left_rotate(tmp);
-						tmp = x->p->right;
-					}
-					tmp->color = x->p->color;
-					x->p->color = false;
-					tmp->left->color = false;
-					right_rotate(x->p);
-					x = _root;
-				}
-			}
-		}
-		x->color = false;
-	}
-
-	void transplant(TreeNode *node1, TreeNode *node2) {
-		if (!node1->p) {
-			_root == node2;
-		}
-		else if (node1 == node1->p->left) {
-			node1->p->left = node2;
-		}
-		else
-			node1->p->right = node2;
-		if (node2)
-			node2->p = node1->p;
-	}
-
-
-	void insert_fixup(TreeNode *node) {
-		TreeNode *y = nullptr;
-		if (node == _root) {
-			node->color = false;
-			return ;
-		}
-		if (node->p == _root)
-			return ;
-		while (node->p && node->p->p && node->p->color == true) {
-			if (node->p == node->p->p->left) {
-				y = node->p->p->right;
-				if (y && y->color == true) {
-					node->p->color = false;
-					y->color = false;
-					node->p->p->color = true;
-				}
-				else {
-					if (node == node->p->right) {
-						node = node->p;
-						left_rotate(node);
-					}
-					node->p->color =  false;
-					node->p->p->color = true;
-					right_rotate(node->p->p);
-				}	
-			}
-			else {
-				y = node->p->p->left;
-				if (y && y->color == true) {
-					node->p->color = false;
-					y->color = false;
-					node->p->p->color = true;
-				}
-				else {
-					if (node == node->p->left) {
-						node = node->p;
-						right_rotate(node);
-					}
-					node->p->color = false;
-					node->p->p->color = true;
-					left_rotate(node->p->p);
-				}		
-			}
-		}
-		_root->color = false;
-	}
-
-	void left_rotate(TreeNode *x) {
-		if (!x || !x->right)
-			return ;
-		TreeNode *y = x->right;
-		x->right = y->left;
-		if (y->left != nullptr) {
-			y->left->p = x;
-		}
-		y->p = x->p;
-		if (!x->p) {
-			_root = y;
-		}
-		else if (x == x->p->left)
-			x->p->left = y;
-		else
-			x->p->right = y;
-		y->left =x;
-		x->p = y;
-	}
-
-	void right_rotate(TreeNode *y) {
-		if (!y || !y->left)
-			return ;
-		TreeNode *x = y->left;
-		y->left = x->right;
-		if (x->right)
-			x->right->p = y;
-		x->p = y->p;	
-		if (!y->p)
-			_root = x;
-		else if (y == y->p->left)
-			y->p->left = x;
-		else
-			y->p->right = x;
-		y->p = x;
-		x->right = y;
-	}
-
-	void clearNode(TreeNode *node) {
-		if (node) {
-			if (node->left)
-				clearNode(node->left);
-			if (node->right)
-				clearNode(node->right);
-			_alloc.destroy(node);
-			_alloc.deallocate(node, 1);
-		}
-
-	}
-
-	TreeNode		*_root;
-	size_type		_size;
-	allocator_type	_alloc;
-	key_compare		_comp;
+	Tree_type *_tree;
+	key_compare	_comp;
+	allocator_type _alloc;
 };
 
 
 }
+
 
 #endif	

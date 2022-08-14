@@ -33,8 +33,6 @@ struct delConst {typedef VAL type;};
 template <typename VAL>
 struct delConst<const VAL>{typedef VAL type;};
 
-
-
 }
 
 #endif

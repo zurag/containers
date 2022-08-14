@@ -54,22 +54,22 @@ public:
 		template <class U>
 		reverse_iterator(const reverse_iterator<U>& other,
 				typename ft::enable_if<std::is_convertible<U, Iter>::value>::type* = 0)
-						: iter(other.base()) {};
+						: iter(other.base()) {}
 		
 		reverse_iterator &operator=(const reverse_iterator &obj) {
 			iter = obj.iter;
 			return *this;
 		}
 
-		reference operator*() {
+		reference operator*() const {
 			Iter copy(iter);
 			return *(--copy);
 		}
 		
-		pointer operator->() {
+		pointer operator->() const {
 			return iter.operator->();
 		}
-		
+
 		reverse_iterator&	operator++() {
 			--iter;
 			return *this;
@@ -163,6 +163,5 @@ public:
 	}
 
 }
-
 
 #endif

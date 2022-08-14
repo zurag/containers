@@ -2,7 +2,7 @@
 # define __UTILITY_HPP__
 
 
-#include "vector.hpp"
+// #include "vector.hpp"
 // #include "map.hpp"
 #include "type_traits.hpp"
 #include "iterator.hpp"
@@ -38,35 +38,35 @@ pair<T1,T2> make_pair (T1 x, T2 y) {
 	return ft::pair<T1, T2>(x, y);
 }
 
-// template <class T1, class T2>
-// bool operator==(const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return x.first == y.first && x.second == y.second;
-// }
+template <class T1, class T2>
+bool operator==(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return x.first == y.first && x.second == y.second;
+}
 
-// template <class T1, class T2>
-// bool operator!=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return !(x == y);
-// }
+template <class T1, class T2>
+bool operator!=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return !(x == y);
+}
 
-// template <class T1, class T2>
-// bool operator< (const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return x.first < y.first || (!(y.first < x.first) && x.second < y.second);
-// }
+template <class T1, class T2>
+bool operator< (const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return x.first < y.first || (!(y.first < x.first) && x.second < y.second);
+}
 
-// template <class T1, class T2>
-// bool operator> (const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return y < x;
-// }
+template <class T1, class T2>
+bool operator> (const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return y < x;
+}
 
-// template <class T1, class T2>
-// bool operator>=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return !(x < y);
-// }
+template <class T1, class T2>
+bool operator>=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return !(x < y);
+}
 
-// template <class T1, class T2>
-// bool operator<=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
-// 	return !(y < x);
-// }
+template <class T1, class T2>
+bool operator<=(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return !(y < x);
+}
 
 template <class InputIterator1, class InputIterator2>
 bool equal (InputIterator1 first1, InputIterator1 last1, InputIterator2 first2) {
