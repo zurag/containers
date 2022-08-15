@@ -251,27 +251,45 @@ void CountTest() {
 
 
 void BoundTest() {
-	ft::map<char,int> mymap;
-	ft::map<char,int>::iterator itlow,itup;
-	mymap.insert(ft::make_pair('a', 20));
-	mymap.insert(ft::make_pair('b', 40));
-	mymap.insert(ft::make_pair('c', 60));
-	mymap.insert(ft::make_pair('d', 80));
-	mymap.insert(ft::make_pair('f', 100));
-	mymap.insert(ft::make_pair('g', 100));
+	{
+		ft::map<char,int> mymap;
+		ft::map<char,int>::iterator itlow,itup;
+		mymap.insert(ft::make_pair('a', 20));
+		mymap.insert(ft::make_pair('b', 40));
+		mymap.insert(ft::make_pair('c', 60));
+		mymap.insert(ft::make_pair('d', 80));
+		mymap.insert(ft::make_pair('f', 100));
+		mymap.insert(ft::make_pair('g', 100));
 
-	
-	itlow = mymap.lower_bound ('b');
-	assertm(itlow->first == 'b', "Lower Bound");
-	itlow = mymap.lower_bound ('e');
-	assertm(itlow->first == 'f', "Lower Bound");
-	itlow = mymap.lower_bound ('h');
-	assertm(itlow == mymap.end(), "Lower Bound");
+		
+		itlow = mymap.lower_bound ('b');
+		assertm(itlow->first == 'b', "Lower Bound");
+		itlow = mymap.lower_bound ('e');
+		assertm(itlow->first == 'f', "Lower Bound");
+		itlow = mymap.lower_bound ('h');
+		assertm(itlow == mymap.end(), "Lower Bound");
 
-	itup = mymap.upper_bound ('d');
-	assertm(itup->first == 'f', "Upper Bound");
-	itup = mymap.upper_bound ('g');
-	assertm(itup == mymap.end(), "Upper Bound");
+		itup = mymap.upper_bound ('d');
+		assertm(itup->first == 'f', "Upper Bound");
+		itup = mymap.upper_bound ('g');
+		assertm(itup == mymap.end(), "Upper Bound");
+	}
+	{
+		ft::map<int,int> f_m;
+		std::map<int,int> s_m;
+
+		for (size_t i = 0; i < 50; ++i) {
+			s_m.insert(std::make_pair(i, i + 10));
+			f_m.insert(ft::make_pair(i, i + 10));
+		}
+
+		for (int i = -2; i < 10; ++i) {
+ 			assertm(f_m.upper_bound(i)->first == s_m.upper_bound(i)->first, "Upper Bound first value");
+			assertm(f_m.upper_bound(i)->second == s_m.upper_bound(i)->second, "Upper Bound second value");
+			assertm(f_m.lower_bound(i)->first == s_m.lower_bound(i)->first, "Lower Bound first value");
+			assertm(f_m.lower_bound(i)->second == s_m.lower_bound(i)->second, "Lower Bound first value");
+		}
+	}
 }
 
 
@@ -304,12 +322,52 @@ void clearTest() {
 	// s_m.clear();
 }
 
-int main() {
-	ft::map<int, int> f_m;
-	ft::map<int, int> f_m2(f_m);
 
-	f_m = f_m2;
-	// // TreeNodeTest();
+void ReverseIteratorTest() {
+	ft::map<int, int> f_m;
+	std::map<int, int> s_m;
+
+	for (size_t i = 0; i < 50; ++i) {
+		f_m.insert(ft::make_pair(i, i + 10));
+		s_m.insert(std::make_pair(i, i + 10));
+	}
+	ft::map<int, int>::reverse_iterator r_fit = f_m.rbegin();
+	std::map<int, int>::reverse_iterator r_sit = s_m.rbegin();
+
+	for (; r_sit != s_m.rend(); ++r_sit, ++r_fit) {
+		assertm(r_sit->first == r_fit->first, " Reverse Iterator check first value");
+		assertm(r_sit->second == r_fit->second, " Reverse Iterator check second value");
+	}
+	r_fit = f_m.rbegin();
+	r_sit = s_m.rbegin();
+	for (; r_sit != s_m.rend(); ++r_sit, ++r_fit) {
+		assertm((*r_sit).first == (*r_fit).first, " Reverse Iterator check operator* first value");
+		assertm((*r_sit).second == (*r_fit).second, " Reverse Iterator check operator* second value");
+	}
+}
+
+
+void CompareTest() {
+	ft::map<int, int, std::greater<int> > f_m;
+	std::map<int, int, std::greater<int> > s_m;
+
+	for (size_t i = 0; i < 50; ++i) {
+		f_m.insert(ft::make_pair(i, i + 10));
+		s_m.insert(std::make_pair(i, i + 10));
+	}
+	ft::map<int, int >::iterator fit = f_m.begin();
+	std::map<int, int>::iterator sit = s_m.begin();
+
+	for (; sit != s_m.end(); ++sit, ++fit) {
+		assertm(sit->first == fit->first, "Greater compare check first value");
+		assertm(sit->second == fit->second, "Greater compare check second value");
+	}
+
+}
+
+
+int main() {
+	// TreeNodeTest();
 	ConstructorTest();
 	std::cout << "ConstructorTest OK" << std::endl;
 	EqualityOperatorTest();
@@ -328,5 +386,9 @@ int main() {
 	std::cout << "BoundTest OK" << std::endl;
 	clearTest();
 	std::cout << "clearTest OK" << std::endl;
+	ReverseIteratorTest();
+	std::cout << "ReverseIteratorTest OK" << std::endl;
+	CompareTest();
+	std::cout << "CompareTest OK" << std::endl;
 	return 0;
 }

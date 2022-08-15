@@ -50,10 +50,10 @@ public:
 	typedef Tree<value_type, value_compare, allocator_type>	Tree_type;
 
 public:
-	typedef typename Tree_type::iterator			iterator;
-	typedef typename Tree_type::const_iterator		const_iterator;
-	typedef typename Tree_type::reverse_iterator	reverse_iterator;
-	typedef typename Tree_type::const_iterator		const_reverse_iterator;
+	typedef typename Tree_type::iterator					iterator;
+	typedef typename Tree_type::const_iterator				const_iterator;
+	typedef typename Tree_type::reverse_iterator			reverse_iterator;
+	typedef typename Tree_type::const_reverse_iterator		const_reverse_iterator;
 
 	map (const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type()):_tree(new Tree_type(comp, alloc)),
