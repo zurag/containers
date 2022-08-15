@@ -22,10 +22,10 @@ namespace ft
 	template <typename T>
 	struct iterator_traits<T*> {
 	public:
-		typedef T													value_type;
-		typedef T*											pointer;
-		typedef T&											reference;
-		typedef ptrdiff_t										difference_type;
+		typedef T															value_type;
+		typedef T*															pointer;
+		typedef T&															reference;
+		typedef ptrdiff_t													difference_type;
 		typedef std::random_access_iterator_tag								iterator_category;
 	};
 
@@ -67,7 +67,7 @@ public:
 		}
 		
 		pointer operator->() const {
-			return iter.operator->();
+			return &(this->operator*());
 		}
 
 		reverse_iterator&	operator++() {

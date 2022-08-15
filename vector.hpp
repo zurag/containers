@@ -31,7 +31,7 @@ namespace ft
 			typedef pointer							iterator_type;
 
 			Iterator():_ptr(nullptr) { }
-			
+
 			template <typename Iter>
 			Iterator(const Iterator<Iter>& other,
 				typename ft::enable_if<std::is_convertible<Iter, U>::value>::type* = 0)

@@ -15,7 +15,6 @@
 
 namespace ft {
 
-
 template <class U>
 struct Node {
 
@@ -43,6 +42,26 @@ struct cmp_val {typedef T key_type;};
 template <class Key, class Value>
 struct cmp_val<pair<Key, Value> > {typedef Key key_type;};
 
+template <class T1, class T2>
+bool key_equal(const pair<T1, T2>& x, const pair<T1, T2>& y) {
+	return x.first == y.first;
+}
+
+template <class T1, class T2>
+bool key_equal(const pair<const T1, T2>& x, const T1& y) {
+	return x.first == y;
+}
+
+template <class T1, class T2>
+bool key_equal(const T1& y, const pair<const T1, T2>& x) {
+	return x.first == y;
+}
+
+template <class T1>
+bool key_equal(const T1 & x, const T1& y) {
+	return x == y;
+}
+
 template <class T>
 class TreeIterator :public std::iterator<std::bidirectional_iterator_tag, T>
 {
@@ -55,8 +74,6 @@ public:
 	typedef pointer iterator_type;
 	typedef Node<typename delConst<T>::type >					TreeNode;
 	typedef TreeNode *											TreeNodePtr;
-
-
 
 	TreeNodePtr getNode() const {return _node;}
 
@@ -71,7 +88,7 @@ public:
 	reference operator*() const {return _node->value_;}
 
 	pointer operator->() const {return &(this->operator*());}
-	
+
 	TreeIterator& operator=(const TreeIterator<typename delConst<T>::type>& x) {
 		if (this == &x)
 			return *this;
@@ -172,13 +189,10 @@ public:
 	typedef typename allocator_type::size_type								size_type;
 	typedef typename allocator_type::difference_type						difference_type;
 	typedef Node<value_type>												TreeNode;
-
-public:
-
-	typedef TreeIterator<value_type>			iterator;
-	typedef TreeIterator<const value_type>		const_iterator;
-	typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
-	typedef ft::reverse_iterator<iterator>			reverse_iterator;
+	typedef TreeIterator<value_type>										iterator;
+	typedef TreeIterator<const value_type>									const_iterator;
+	typedef ft::reverse_iterator<const_iterator>							const_reverse_iterator;
+	typedef ft::reverse_iterator<iterator>									reverse_iterator;
 
 	Tree (const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type()):_root(nullptr),_nill(nullptr),
@@ -348,7 +362,7 @@ public:
 			if (_comp(val, x->value_)) {
 				x = x->left;
 			}
-			else if (val.first == x->value_.first) {
+			else if (key_equal(val, x->value_)) {
 				return (pair<iterator, bool>(iterator(x, _root), false));
 			}
 			else
@@ -477,7 +491,7 @@ public:
 		TreeNode *tmp = _root;
 
 		while (!tmp->is_nill) {
-			if (tmp->value_.first == k) {
+			if (key_equal(tmp->value_, k)) {
 				return iterator(tmp, _root);
 			}
 			else if (_comp(tmp->value_, k))
@@ -491,7 +505,7 @@ public:
 	const_iterator find (const key_type& k) const {
 		TreeNode *tmp = _root;
 		while (!tmp->is_nill) {
-			if (tmp->value_.first == k) {
+			if (key_equal(tmp->value_, k)) {
 				return const_iterator(tmp, _root);
 			}
 			else if (_comp(tmp->value_, k))
@@ -511,7 +525,7 @@ public:
 		TreeNode *tmp = _root;
 		
 		while (!tmp->is_nill) {
-			if (tmp->value_.first == k) {
+			if (key_equal(tmp->value_, k)) {
 				return iterator(tmp, _root);
 			}
 			else if (_comp(tmp->value_, k)) {
@@ -529,12 +543,12 @@ public:
 		}
 		return end();
 	}
-	
+
 	const_iterator lower_bound (const key_type& k) const {
 		TreeNode *tmp = _root;
 		
 		while (!tmp->is_nill) {
-			if (tmp->value_.first == k) {
+			if (key_equal(tmp->value_, k)) {
 				return const_iterator(tmp, _root);
 			}
 			else if (_comp(tmp->value_, k)) {
@@ -562,7 +576,7 @@ public:
 				else
 					tmp = tmp->right;
 			}
-			else if (tmp->value_.first == k) {
+			else if (key_equal(tmp->value_, k)) {
 				return ++iterator(tmp, _root);
 			}
 			else {
@@ -583,7 +597,7 @@ public:
 				else
 					tmp = tmp->right;
 			}
-			else if (tmp->value_.first == k) {
+			else if (key_equal(tmp->value_, k)) {
 				return ++const_iterator(tmp, _root);
 			}
 			else {
@@ -782,6 +796,12 @@ private:
 	allocator_type	_alloc;
 	key_compare		_comp;
 };
+
+
+
+
+
+
 
 }
 
