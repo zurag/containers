@@ -1,17 +1,12 @@
 #ifndef TREE_HPP
 # define TREE_HPP
 
-#include <memory>
-#include <utility>
 #include <stack>
-#include <functional>
+#include <vector>
 #include <iterator>
-#include <iostream>
 #include "type_traits.hpp"
 #include "iterator.hpp"
 #include "utility.hpp"
-#include <vector>
-#include <stack>
 
 namespace ft {
 
